@@ -64,28 +64,62 @@
 
 ## 📋 环境要求
 
-### 系统要求
+### 🖥️ 硬件配置（推荐）
 
-- **操作系统**：Windows 10/11, Linux, macOS
-- **Python 版本**：3.8 - 3.14
-- **内存**：建议 8GB 及以上
-- **存储空间**：至少 5GB（包含模型文件）
-- **GPU**：可选，建议使用 NVIDIA GPU 以加速处理
+| 配置项 | 推荐规格 | 本项目测试环境 |
+|--------|----------|----------------|
+| **操作系统** | Windows 10/11, Linux, macOS | Windows 11 |
+| **CPU** | Intel i5/AMD Ryzen 5 及以上 | - |
+| **内存** | 16GB 及以上 | - |
+| **GPU** | NVIDIA RTX 3060 及以上 | **NVIDIA GeForce RTX 5070 (12GB)** |
+| **CUDA** | 11.8 / 12.1 / 13.0 | **CUDA 13.0** |
+| **存储空间** | 至少 10GB（包含模型文件） | SSD 推荐 |
 
-### 软件依赖
+> 💡 **GPU 加速说明**：
+> - ✅ **GPU 模式**（推荐）：处理速度快 10-50 倍，支持大分辨率图像
+> - ⚠️ **CPU 模式**：处理较慢，适合小图或无 GPU 环境
 
+### 🐍 Python 环境（实际测试配置）
+
+本项目基于 **Anaconda** 环境管理，推荐使用以下配置：
+
+| 配置项 | 版本 | 说明 |
+|--------|------|------|
+| **Conda 环境名** | `real` | 建议创建独立环境 |
+| **Python** | **3.9.25** | 稳定版本，兼容性好 |
+| **包管理器** | conda + pip | 混合使用 |
+
+### 📦 核心依赖包（精确版本）
+
+以下是本项目**实际测试通过**的依赖包版本：
+
+#### 深度学习框架
 | 包名 | 版本 | 说明 |
 |------|------|------|
-| torch | 2.9.1 | PyTorch 深度学习框架 |
-| torchvision | 0.24.1 | PyTorch 视觉库 |
-| numpy | 2.2.6 | 数值计算库 |
-| opencv-python | 4.12.0.88 | 图像处理库 |
-| Pillow | 12.0.0 | 图像处理库 |
-| requests | 2.32.5 | HTTP 请求库 |
-| basicsr | 1.3.3.3 | 图像恢复框架 |
-| facexlib | 0.3.0 | 人脸处理库 |
-| gfpgan | 1.3.8 | 人脸增强模型 |
-| tqdm | 4.67.1 | 进度条显示 |
+| **torch** | **2.9.1** | PyTorch 深度学习框架（CUDA 13.0） |
+| **torchvision** | **0.24.1** | PyTorch 计算机视觉库 |
+
+#### 图像处理
+| 包名 | 版本 | 说明 |
+|------|------|------|
+| **opencv-python** | **4.12.0.88** | OpenCV 图像处理库 |
+| **Pillow** | **12.0.0** | PIL 图像处理库 |
+| **numpy** | **2.2.6** | 数值计算基础库 |
+
+#### AI 模型与工具
+| 包名 | 版本 | 说明 |
+|------|------|------|
+| **basicsr** | **1.3.3.3** | 图像超分辨率基础框架 |
+| **facexlib** | **0.3.0** | 人脸检测与处理库 |
+| **gfpgan** | **1.3.8** | 人脸增强 GAN 模型 |
+
+#### 辅助工具
+| 包名 | 版本 | 说明 |
+|------|------|------|
+| **requests** | **2.32.5** | HTTP 请求库（API 调用） |
+| **tqdm** | **4.67.1** | 进度条显示库 |
+
+> 📌 **版本说明**：以上版本均为项目实际测试环境，推荐使用相同或兼容版本
 
 ---
 
@@ -98,47 +132,73 @@ git clone https://github.com/AntarcticLu/44k.git
 cd 44k
 ```
 
-### 2️⃣ 创建虚拟环境（推荐）
+### 2️⃣ 创建 Conda 虚拟环境
+
+使用 Anaconda/Miniconda 创建独立的 Python 环境（**强烈推荐**）：
 
 #### Windows
 ```bash
-# 使用 Conda（推荐）
-conda create -n 44k python=3.11 -y
-conda activate 44k
+# 创建名为 real 的环境，使用 Python 3.9.25
+conda create -n real python=3.9.25 -y
 
-# 或使用 venv
-python -m venv venv
-.\venv\Scripts\activate
+# 激活环境
+conda activate real
 ```
 
 #### Linux/macOS
 ```bash
-# 使用 Conda（推荐）
-conda create -n 44k python=3.11 -y
-conda activate 44k
+# 创建名为 real 的环境，使用 Python 3.9.25
+conda create -n real python=3.9.25 -y
 
-# 或使用 venv
+# 激活环境
+conda activate real
+```
+
+> 💡 **提示**：环境名可以自定义，但推荐使用 `real` 与测试环境保持一致
+
+#### 可选：使用 venv（不推荐）
+```bash
+# Windows
+python -m venv venv
+.\venv\Scripts\activate
+
+# Linux/macOS
 python -m venv venv
 source venv/bin/activate
 ```
 
-### 3️⃣ 安装 PyTorch
+### 3️⃣ 安装 PyTorch（关键步骤）
 
-根据你的系统和是否有 GPU，选择合适的安装命令：
+根据你的 **GPU 和 CUDA 版本**选择对应的安装命令：
 
-#### GPU 版本（推荐，需要 NVIDIA GPU）
+#### 🎮 GPU 版本（推荐，RTX 5070 等 NVIDIA GPU）
+
 ```bash
-# CUDA 11.8
-pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu118
+# ✅ CUDA 13.0（本项目测试环境 - RTX 5070）
+pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu130
 
-# CUDA 12.1
+# CUDA 12.1（RTX 4000 系列常用）
 pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu121
+
+# CUDA 11.8（RTX 3000 系列及更早版本）
+pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu118
 ```
 
-#### CPU 版本
+> 🔍 **如何查看 CUDA 版本？**
+> ```bash
+> # 方法 1: 查看 nvidia-smi 输出的 CUDA Version
+> nvidia-smi
+>
+> # 方法 2: 查看 CUDA 安装目录
+> nvcc --version
+> ```
+
+#### 💻 CPU 版本（无 GPU 或仅测试）
 ```bash
 pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cpu
 ```
+
+⚠️ **注意**：CPU 模式处理速度较慢，建议用于小图或测试
 
 ### 4️⃣ 安装项目依赖
 
